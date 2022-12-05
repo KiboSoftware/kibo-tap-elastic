@@ -1,0 +1,211 @@
+{
+    "streams": [
+      {
+        "table_name": "Tenant-Requests",
+        "stream": "Tenant-Requests",
+        "metadata": [
+          {
+            "breadcrumb": [],
+            "metadata": {
+              "fields":["TenantId", "timestamp"],
+              "interval": "10m",
+              "selected": true,
+              "index": "logstash-*",
+              "table-key-properties": ["_id"],
+              "body": {
+                "size": 0,
+                "query": {
+                  "bool": {
+                    "filter": [
+                      {
+                        "range": {
+                          "@timestamp": {
+                            "gte": "START_DATE",
+                            "lte": "END_DATE",
+                            "format": "epoch_millis"
+                          }
+                        }
+                      },
+                      {
+                        "query_string": {
+                          "analyze_wildcard": true,
+                          "query": "kubernetes.labels.app.keyword:\"mozu-reverseproxy-webapi\""
+                        }
+                      }
+                    ]
+                  }
+                },
+                "aggs": {
+                  "TenantId": {
+                    "terms": {
+                      "field": "TenantId",
+                      "size": 20,
+                      "order": {
+                        "_count": "desc"
+                      },
+                      "min_doc_count": 1
+                    },
+                    "aggs": {
+                      "timestamp": {
+                        "date_histogram": {
+                          "interval": "INTERVAL",
+                          "field": "@timestamp",
+                          "min_doc_count": 0,
+                          "extended_bounds": {
+                            "min": "START_DATE",
+                            "max": "END_DATE"
+                          },
+                          "format": "epoch_millis"
+                        },
+                        "aggs": {}
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "tap_stream_id": "Elastic-Tenant-Requests",
+        "key_properties": [ "TenantId", "timestamp"],
+         "replication_key": "timestamp",     
+        "schema": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "type": "object",
+          "properties": {
+            "TenantId": {
+              "type": "integer"
+            },
+            "TenantId_count": {
+              "type": "integer"
+            },
+            "timestamp": {
+              "type": "integer"
+            },
+            "timestamp_count": {
+              "type": "integer"
+            }
+          }
+          
+        }
+      },
+      {
+        "table_name": "Tenant-Latency",
+        "stream": "Tenant-Latency",
+        "metadata": [
+          {
+            "breadcrumb": [],
+            "metadata": {
+              "fields":["TenantId", "timestamp","responses"],
+              "interval": "10m",
+              "selected": true,
+              "index": "logstash-*",
+              "table-key-properties": ["_id"],
+              "body": {
+                "size": 0,
+                "query": {
+                  "bool": {
+                    "filter": [
+                      {
+                        "range": {
+                          "@timestamp": {
+                            "gte": "START_DATE",
+                            "lte": "END_DATE",
+                            "format": "epoch_millis"
+                          }
+                        }
+                      },
+                      {
+                        "query_string": {
+                          "analyze_wildcard": true,
+                          "query": "logger.name: \"Mozu.Core.Api.Middleware.WebLogMiddleware\""
+                        }
+                      }
+                    ]
+                  }
+                },
+                "aggs": {
+                  "TenantId": {
+                    "terms": {
+                      "field": "TenantId",
+                      "size": 20,
+                      "order": {
+                        "_count": "desc"
+                      },
+                      "min_doc_count": 1
+                    },
+                    "aggs": {
+                      "timestamp": {
+                        "date_histogram": {
+                          "interval": "INTERVAL",
+                          "field": "@timestamp",
+                          "min_doc_count": 1,
+                          "extended_bounds": {
+                            "min": "START_DATE",
+                            "max": "END_DATE"
+                          },
+                          "format": "epoch_millis"
+                        },
+                        "aggs": {
+                          "responses": {
+                            "percentiles": {
+                              "field": "duration",
+                              "percents": [25, 50, 75, 95, 99]
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "tap_stream_id": "Elastic-Tenant-Latency",
+        "replication_key": "timestamp",
+        "key_properties": [ "TenantId", "timestamp"],
+        "fields":["TenantId", "timestamp", "responses"],
+        "schema": {
+          "type": "object",
+          "properties": {
+            "TenantId": {
+              "type": "integer"
+            },
+            "TenantId_count": {
+              "type": "integer"
+            },
+            "timestamp": {
+              "type": "integer"
+            },
+            "timestamp_count": {
+              "type": "integer"
+            },
+            "responses_values": {
+              "type": "object",
+              "properties": {
+                "25.0": {
+                  "type": "number"
+                },
+                "50.0": {
+                  "type": "number"
+                },
+                "75.0": {
+                  "type": "number"
+                },
+                "95.0": {
+                  "type": "number"
+                },
+                "99.0": {
+                  "type": "number"
+                }
+              }
+             
+            }
+          }
+         
+        }
+      }
+    ]
+  }
+  

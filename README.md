@@ -6,13 +6,10 @@ spec](https://github.com/singer-io/getting-started/blob/master/SPEC.md).
 
 This tap:
 
-- Pulls raw data from [FIXME](http://example.com)
-- Extracts the following resources:
-  - [FIXME](http://example.com)
-- Outputs the schema for each resource
-- Incrementally pulls data based on the input state
+- Pulls raw data from eleastic Search (https://www.elastic.co/) given an aggregate query
+- Incrementally pulls data for each configured aggregate query based on START_DATE and END_DATE filter paramaters over a given INTERVAL window
 
 ---
 
 
-Copyright &copy; 2018 Stitch
+

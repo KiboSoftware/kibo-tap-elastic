@@ -95,6 +95,9 @@ def query (config,stream,start_date,end_date):
     body_string = replace_date(body_string,start_date,end_date,interval)
     url = config['host'] + '/'+ index +'/_search?search_type=query_then_fetch&ignore_unavailable=true&max_concurrent_shard_requests=5' 
     
+    LOGGER.info(f'elastic:querying: {stream.tap_stream_id} from {start_date} to {end_date} at interval: {interval}')
+    log_body = body_string.replace("\n",'');
+    LOGGER.info(f'elastic:queryBody: {log_body}');
     response = requests.post(
         url, 
         data=body_string, 

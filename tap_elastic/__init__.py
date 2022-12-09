@@ -76,6 +76,7 @@ def QueryStream( config,state,stream):
     
     
     while True:
+        singer.write_state(state)
         min =  state.get('bookmarks', {}).get(stream.tap_stream_id, lastWeek)
         if ( min >= lastHour):
             return

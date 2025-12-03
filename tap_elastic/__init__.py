@@ -56,12 +56,14 @@ def discover():
         )
     return Catalog(streams)
 
-def replace_date(body_string, start_date, end_date,interval):    
+def replace_date(body_string, start_date, end_date,interval):
     start_date_str = str(time.mktime(start_date.timetuple())*1000)
     end_date_str =  str(time.mktime(end_date.timetuple())*1000)
     body_string = body_string.replace('START_DATE', start_date_str)
     body_string = body_string.replace('END_DATE', end_date_str)
     body_string = body_string.replace('INTERVAL', interval)
+    # Fix for Elasticsearch 7.2+: replace "interval" with "fixed_interval" in date_histogram
+    body_string = body_string.replace('"interval":', '"fixed_interval":')
     return body_string
 
 def QueryStream( config,state,stream):
@@ -107,9 +109,24 @@ def query (config,stream,start_date,end_date):
         #proxies={"https": "http://localhost:8866"},
         #verify=False
         )
-    # todo deal with error
+    # Check for HTTP errors
+    if response.status_code != 200:
+        LOGGER.error(f'elastic:error: HTTP {response.status_code} - {response.text}')
+        raise Exception(f'Elasticsearch query failed with status {response.status_code}: {response.text}')
+
     response_body = response.json()
-    
+
+    # Log the full response for debugging
+    LOGGER.info(f'elastic:response: {json.dumps(response_body)}')
+
+    # Check if aggregations exist in response
+    if 'aggregations' not in response_body:
+        LOGGER.error(f'elastic:error: No aggregations in response. Response keys: {list(response_body.keys())}')
+        if 'error' in response_body:
+            LOGGER.error(f'elastic:error: {json.dumps(response_body["error"])}')
+            raise Exception(f'Elasticsearch error: {response_body["error"]}')
+        raise Exception(f'No aggregations found in Elasticsearch response. Response: {json.dumps(response_body)}')
+
     aggregations = response_body['aggregations']
     rows =[]
     fields = stream.metadata[0]['metadata']['fields']

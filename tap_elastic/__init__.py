@@ -100,7 +100,7 @@ def query (config,stream,start_date,end_date):
     
     LOGGER.info(f'elastic:querying: {stream.tap_stream_id} from {start_date} to {end_date} at interval: {interval}')
     log_body = body_string.replace("\n",'');
-    LOGGER.info(f'elastic:queryBody: {log_body}');
+    LOGGER.debug(f'elastic:queryBody: {log_body}');
 
     # Build proxies configuration from environment variables
     proxies = {}
@@ -125,9 +125,7 @@ def query (config,stream,start_date,end_date):
 
     response_body = response.json()
 
-    # Log the full response for debugging
-    LOGGER.info(f'elastic:response: {json.dumps(response_body)}')
-
+    
     # Check if aggregations exist in response
     if 'aggregations' not in response_body:
         LOGGER.error(f'elastic:error: No aggregations in response. Response keys: {list(response_body.keys())}')

@@ -11,8 +11,12 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
+            "env":{
+                "HTTP_PROXY":"http://localhost:8866",
+                "HTTPS_PROXY":"http://localhost:8866"
+            },
             "args": ["--config", "./config.json",
-                "--catalog", "./catalog.json"]
+                "--catalog", "./catalog.json", "--state", "./state.json"]
         }
     ]
 }
